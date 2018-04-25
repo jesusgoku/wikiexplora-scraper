@@ -1,0 +1,13 @@
+{
+  "name": "wikiexplora-scraper",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jesús Urrutia",
+    "email": "jesus.urrutia@gmail.com",
+    "url": "https://jesusurrutia.com"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "cherio": "^1.0.0-rc.2"
+  }
+}
