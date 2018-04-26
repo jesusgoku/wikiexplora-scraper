@@ -1,6 +1,8 @@
 const fs = require('fs');
 const axios = require('axios');
 const cherio = require('cherio');
+const { sha256 } = require('./hash');
+const { createDocument } = require('./database');
 
 const attributes = [
   'Ubicación',
@@ -25,23 +27,23 @@ const url = 'http://www.wikiexplora.com/Cerro_La_Cruz';
 // const url = 'http://www.wikiexplora.com/Pochoco';
 // const url = 'http://www.wikiexplora.com/Cerro_Pintor';
 
-axios
-  .get(url)
-  .then(data => { console.log(data); return data; })
-  .then(data => cherio.load(data.data))
-  .then(parseAttributes)
-  .then(filterAttributes)
-  .then(data => console.log(data))
-  .catch(console.log.bind(console))
-;
-
-// readFile('./index.html')
-//   .then(data => cherio.load(data))
-//   .then(parseAttributes)
+// axios
+//   .get(url)
+//   .then(data => { console.log(data); return data; })
+//   .then(data => cherio.load(data.data))
+//   .then(parseData)
 //   .then(filterAttributes)
 //   .then(data => console.log(data))
 //   .catch(console.log.bind(console))
 // ;
+
+readFile('./temp/la-cruz.html')
+  // .then(data => cherio.load(data))
+  .then(parseData)
+  // .then(persistDataForUrl(url))
+  .then(data => console.log(data))
+  .catch(console.log.bind(console))
+;
 
 function readFile(filePath) {
   return new Promise((resolve ,reject) => {
@@ -53,6 +55,25 @@ function readFile(filePath) {
       resolve(data);
     });
   });
+}
+
+function parseData(data) {
+  const $ = cherio.load(data);
+  return {
+    name: parseName($),
+    attributes: filterAttributes(parseAttributes($)),
+    kmz: parseKMZ(data),
+    html: $.html(),
+  };
+}
+
+function parseName($) {
+  return $('#firstHeading').text().trim();
+}
+
+function parseKMZ(data) {
+  const match = String(data).match(/http:\/\/www\.wikiexplora\.com\/.+\.kmz/);
+  return match.length ? match[0] : null;
 }
 
 function parseAttributes($) {
@@ -83,3 +104,13 @@ function filterAttributes(data) {
 }
 
 function normalizeAttributes(data) {}
+
+function persistDataForUrl(url) {
+  return data => {
+    const payload = Object.assign({}, {
+      _id: sha256(url),
+    }, data);
+
+    return createDocument(payload);
+  }
+}
