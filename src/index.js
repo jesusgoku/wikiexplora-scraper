@@ -1,6 +1,6 @@
-const fs = require('fs');
 const axios = require('axios');
 const cherio = require('cherio');
+const { readFile } = require('./fs');
 const { sha256 } = require('./hash');
 const { createDocument } = require('./database');
 
@@ -45,25 +45,13 @@ readFile('./temp/la-cruz.html')
   .catch(console.log.bind(console))
 ;
 
-function readFile(filePath) {
-  return new Promise((resolve ,reject) => {
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        reject(err);
-      }
-
-      resolve(data);
-    });
-  });
-}
-
 function parseData(data) {
   const $ = cherio.load(data);
   return {
     name: parseName($),
     attributes: filterAttributes(parseAttributes($)),
     kmz: parseKMZ(data),
-    html: $.html(),
+    // html: $.html(),
   };
 }
 
