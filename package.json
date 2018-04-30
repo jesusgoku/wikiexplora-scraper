@@ -12,6 +12,7 @@
   "dependencies": {
     "axios": "^0.18.0",
     "cherio": "^1.0.0-rc.2",
-    "dotenv": "^5.0.1"
+    "dotenv": "^5.0.1",
+    "mongodb": "^3.0.7"
   }
 }
