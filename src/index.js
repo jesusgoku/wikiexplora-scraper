@@ -1,8 +1,10 @@
 const axios = require('axios');
 const cherio = require('cherio');
+const { toKMZ, toGeoJSON } = require('kmz-geojson');
 const { readFile } = require('./fs');
 const { sha256 } = require('./hash');
 const { createDocument } = require('./database');
+const { updateOne } = require('./mongodb');
 
 const attributes = [
   'Ubicación',
@@ -40,10 +42,23 @@ const url = 'http://www.wikiexplora.com/Cerro_La_Cruz';
 readFile('./temp/la-cruz.html')
   // .then(data => cherio.load(data))
   .then(parseData)
+  .then(parseKMZ2GeoJSON)
   // .then(persistDataForUrl(url))
   .then(data => console.log(data))
   .catch(console.log.bind(console))
 ;
+
+function parseKMZ2GeoJSON(data) {
+  return new Promise((resolve, reject) => {
+    toGeoJSON(data.kmz, (err, geoJSON) => {
+      if (err) {
+        reject(err);
+      }
+      console.log(JSON.stringify(geoJSON));
+      resolve({...data, geoJSON });
+    });
+  });
+}
 
 function parseData(data) {
   const $ = cherio.load(data);
@@ -93,12 +108,22 @@ function filterAttributes(data) {
 
 function normalizeAttributes(data) {}
 
+// function persistDataForUrl(url) {
+//   return data => {
+//     const payload = Object.assign({}, {
+//       _id: sha256(url),
+//     }, data);
+
+//     return createDocument(payload);
+//   }
+// }
+
 function persistDataForUrl(url) {
   return data => {
     const payload = Object.assign({}, {
       _id: sha256(url),
     }, data);
 
-    return createDocument(payload);
+    return updateOne('Places', { _id: payload._id }, { $set: payload }, { upsert: true });
   }
 }
